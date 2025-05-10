@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tracking Lookup</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+  <h2>Track Your Shipment</h2>
+  <input type="text" id="trackInput" placeholder="Enter Tracking Number">
+  <button onclick="lookup()">Search</button>
+  <div id="result" style="margin-top: 20px;"></div>
+
+  <script>
+    let sheetData = {};
+
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbWM3TU6izGY2Rcw-Gd2UTl4ddN5_CH_WqOOMT4yTvYU4WxW7vft8GZUZiQxITOwWRnqzgpeE_ZzUF/pub?gid=0&single=true&output=csv';
+
+    function loadCSV() {
+      Papa.parse(sheetURL, {
+        download: true,
+        header: true,
+        complete: function(results) {
+          results.data.forEach(row => {
+            const trackingNumber = row["Tracking Number"]?.trim();
+            const link = row["Link"]?.trim();
+            if (trackingNumber && link) {
+              sheetData[trackingNumber] = link;
+            }
+          });
+        },
+        error: function(error) {
+          document.getElementById("result").innerText = "Error loading data.";
+          console.error('Error loading CSV:', error);
+        }
+      });
+    }
+
+    function lookup() {
+      const input = document.getElementById("trackInput").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (sheetData[input]) {
+        resultDiv.innerHTML = `<a href="${sheetData[input]}" target="_blank">Track Order</a>`;
+      } else {
+        resultDiv.innerHTML = "Tracking number not found.";
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadCSV);
+  </script>
+</body>
+</html>
